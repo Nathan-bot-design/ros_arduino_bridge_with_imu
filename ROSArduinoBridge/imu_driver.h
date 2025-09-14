@@ -9,6 +9,8 @@ void initIMU();
 float getYaw();
 float deltaYaw();
 void resetYaw();
+float getIMUAccelX();
+float getIMUYawRate();
 
 #endif
 
