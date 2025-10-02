@@ -45,7 +45,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-
 #define USE_BASE  // Enable the base controller code
 //#undef USE_BASE     // Disable the base controller code
 
@@ -67,14 +66,15 @@
 #define L298_MOTOR_DRIVER
 #endif
 
-//#define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
-#undef USE_SERVOS  // Disable use of PWM servos
+// #define USE_SERVOS  // Enable use of PWM servos as defined in servos.h
+// #undef USE_SERVOS     // Disable use of PWM servos
 
 /* Serial port baud rate */
 #define BAUDRATE 57600
 
 /* Maximum PWM signal */
-#define MAX_PWM 120
+#define MAX_PWM 150
+#include "imu_driver.h"
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
@@ -186,8 +186,6 @@ int runCommand() {
     case PING:
       Serial.println(Ping(arg1));
       break;
-
-
 #ifdef USE_SERVOS
     case SERVO_WRITE:
       servos[arg1].setTargetPosition(arg2);
@@ -196,9 +194,105 @@ int runCommand() {
     case SERVO_READ:
       Serial.println(servos[arg1].getServo().read());
       break;
+
 #endif
 
 #ifdef USE_BASE
+
+      // case READ_IMU:
+      //   {
+      //     float ax, ay, az, gx, gy, gz;
+      //     readIMU(ax, ay, az, gx, gy, gz);
+      //     // print as a single line: ax ay az gx gy gz<newline>
+      //     // Use enough decimal places for precision
+      //     Serial.print(ax, 6);
+      //     Serial.print(" ");
+      //     Serial.print(ay, 6);
+      //     Serial.print(" ");
+      //     Serial.print(az, 6);
+      //     Serial.print(" ");
+      //     Serial.print(gx, 6);
+      //     Serial.print(" ");
+      //     Serial.print(gy, 6);
+      //     Serial.print(" ");
+      //     Serial.println(gz, 6);
+      //     break;
+      //   }
+      // case READ_IMU:
+      //   {
+      //     float ax, ay, az, gx, gy, gz;
+      //     readIMU(ax, ay, az, gx, gy, gz);
+      //     float qw, qx, qy, qz;
+      //     getQuaternion(qw, qx, qy, qz);
+
+      //     // print as a single line: ax ay az gx gy gz qw qx qy qz<newline>
+      //     // Use enough decimal places for precision
+      //     Serial.print(ax, 6);
+      //     Serial.print(" ");
+      //     Serial.print(ay, 6);
+      //     Serial.print(" ");
+      //     Serial.print(az, 6);
+      //     Serial.print(" ");
+      //     Serial.print(gx, 6);
+      //     Serial.print(" ");
+      //     Serial.print(gy, 6);
+      //     Serial.print(" ");
+      //     Serial.print(gz, 6);
+      //     Serial.print(" ");
+      //     Serial.print(qw, 6);
+      //     Serial.print(" ");
+      //     Serial.print(qx, 6);
+      //     Serial.print(" ");
+      //     Serial.print(qy, 6);
+      //     Serial.print(" ");
+      //     Serial.println(qz, 6);
+      //     break;
+      //   }
+
+
+
+    case READ_IMU:
+      {
+        float ax, ay, az, gx, gy, gz;
+        readIMU(ax, ay, az, gx, gy, gz);
+        float qw, qx, qy, qz;
+        getQuaternion(qw, qx, qy, qz);
+
+        // ---- Swap Y and Z axes ----
+        float ay_swapped = az;
+        float az_swapped = -ay;  // negative if orientation is flipped
+
+        float gy_swapped = gz;
+        float gz_swapped = -gy;
+
+        // Print corrected values
+        Serial.print(-ax, 6);
+        Serial.print(" ");
+        Serial.print(-ay_swapped, 6);
+        Serial.print(" ");
+        Serial.print(-az_swapped, 6);
+        Serial.print(" ");
+        Serial.print(-gx, 6);
+        Serial.print(" ");
+        Serial.print(-gy_swapped, 6);
+        Serial.print(" ");
+        Serial.print(-gz_swapped, 6);
+        Serial.print(" ");
+        Serial.print(qw, 6);
+        Serial.print(" ");
+        Serial.print(-qz, 6);
+        Serial.print(" ");
+        Serial.print(-qx, 6);  // swapped order if needed
+        Serial.print(" ");
+        Serial.println(-qy, 6);  // flipped sign if needed
+        break;
+      }
+
+
+
+
+
+
     case READ_ENCODERS:
       Serial.print(readEncoder(LEFT));
       Serial.print(" ");
@@ -240,6 +334,7 @@ int runCommand() {
       Ko = pid_args[3];
       Serial.println("OK");
       break;
+
 #endif
     default:
       Serial.println("Invalid Command");
@@ -250,7 +345,7 @@ int runCommand() {
 /* Setup function--runs once at startup. */
 void setup() {
   Serial.begin(BAUDRATE);
-
+  initIMU();
 
 
 // Initialize the motor controller if used */

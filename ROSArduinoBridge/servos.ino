@@ -35,16 +35,36 @@ void SweepServo::initServo(
 }
 
 
-// Perform Sweep
+// // Perform Sweep
+// void SweepServo::doSweep()
+// {
+
+//   // Get ellapsed time
+//   int delta = millis() - this->lastSweepCommand;
+
+//   // Check if time for a step
+//   if (delta > this->stepDelayMs) {
+//     // Check step direction
+//     if (this->targetPositionDegrees > this->currentPositionDegrees) {
+//       this->currentPositionDegrees++;
+//       this->servo.write(this->currentPositionDegrees);
+//     }
+//     else if (this->targetPositionDegrees < this->currentPositionDegrees) {
+//       this->currentPositionDegrees--;
+//       this->servo.write(this->currentPositionDegrees);
+//     }
+//     // if target == current position, do nothing
+
+//     // reset timer
+//     this->lastSweepCommand = millis();
+//   }
+// }
+
 void SweepServo::doSweep()
 {
-
-  // Get ellapsed time
   int delta = millis() - this->lastSweepCommand;
 
-  // Check if time for a step
   if (delta > this->stepDelayMs) {
-    // Check step direction
     if (this->targetPositionDegrees > this->currentPositionDegrees) {
       this->currentPositionDegrees++;
       this->servo.write(this->currentPositionDegrees);
@@ -53,12 +73,13 @@ void SweepServo::doSweep()
       this->currentPositionDegrees--;
       this->servo.write(this->currentPositionDegrees);
     }
-    // if target == current position, do nothing
+    // ✅ NEW: only write when actually moving
+    // else do nothing if already at target
 
-    // reset timer
     this->lastSweepCommand = millis();
   }
 }
+
 
 
 // Set a new target position
